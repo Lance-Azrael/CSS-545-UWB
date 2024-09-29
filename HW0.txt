@@ -1,0 +1,11 @@
+1. Intended platform for final project (e.g. Android, iOS)
+Android
+
+2. Intended framework/programming language for your final project (e.g. Kotlin, Swift)
+Kotlin/Java
+
+3. Whether you want to explore cross-platform development
+I will try to learn cross-platform development, but I won't use it for my final project.
+
+4. Include a brief explanation for your selections
+The decisive reason: I don't have a personal PC with Mac OS, and it is complex to run Xcode on my Windows PC, so developing software for the iOS platform can become really challenging for me this zero fundation beginner.

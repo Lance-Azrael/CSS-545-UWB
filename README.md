@@ -44,7 +44,7 @@ Initial page: 1. Permission Button: Click to acquire the permissions such as flo
 
 On Screen: 1. Screenshot button: Click to take a screenshot and allow the user to clip the area they want to translate. 2. Text area: Show the result of the translation. Only appear after the user has defined the area. 3. Back Button: Click to close the screenshot window or the translation text. 
 
-<img src="https://github.com/Lance-Azrael/CSS-545-UWB/blob/HW2/HW2%20image.jpg?raw=true" alt="img" style="zoom:25%;" />
+<img src="https://github.com/Lance-Azrael/CSS-545-UWB/blob/CP1/CP1%20image.jpg?raw=true" alt="img" style="zoom:25%;" />
 
 ### Technical Architecture
 

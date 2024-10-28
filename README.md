@@ -1,7 +1,7 @@
 # EasyScreen Translator
 
 Dingyuan Xue, Sicen Liu 
-Version #1
+Version #2
 
 ## Summary of Project
 
@@ -40,22 +40,38 @@ Freeminum. Provide users with a certain number of free trial uses, after which t
 
 ### UI/UX Design
 
-Initial page: 1. Permission Button: Click to acquire the permissions such as floating window and background running. 2. Start and Stop Button: Click to start the service, creating a Screenshot button on the screen. Click to disappear the existing Screenshot button. Only active after the user gives the permissions. 3. Setting Button: Click to set the translation language and other options.
 
-On Screen: 1. Screenshot button: Click to take a screenshot and allow the user to clip the area they want to translate. 2. Text area: Show the result of the translation. Only appear after the user has defined the area. 3. Back Button: Click to close the screenshot window or the translation text. 
+Initial Page
+1. Dropdown menu to select the translation language.
+2. Start button, click to show/hide the floating button.
+3. User button, click to navigate to the user interface.
 
-<img src="https://github.com/Lance-Azrael/CSS-545-UWB/blob/CP1/CP1%20image.jpg?raw=true" alt="img" style="zoom:25%;" />
+User Page:
+1. Log in using the login button.
+2. Enter and display user name, email, and VIP status.
+3. Use the edit button to edit user information.
+4. Use the logout button to log out.
+
+On top of other applications:
+1. Floating button, click to enter translation mode.
+2. In translation mode, swipe to select the translation area.
+3. Translations are displayed at the bottom of the screen.
+4. Return button, click to return normal mode.
+
+<img src="https://github.com/Lance-Azrael/CSS-545-UWB/blob/main/CP2%20image.png?raw=true" alt="img" style="zoom:25%;" />
+
 
 ### Technical Architecture
 
-1. A component to control the screenshot function and clipping function. May use the screenshot function of the system. May store the image in the galley of the system.
-2. A component to control recognizing text from the screenshot image. May use an opensource library ([Tess4J](https://github.com/nguyenq/tess4j)) or a ML model.
-3. A component to control translating the text. It will be a ML model ([Transformers](https://github.com/huggingface/transformers)), deploying locally for MVP. May use web interaction in the final version to improve the behavior. 
+1. A button that can float on top of other applications.
+2. A component to control the screenshot function and clipping function. Use Media Projections.
+3. A component to control recognizing text from the screenshot image. Use Google Dependencies.
+4. A component to control translating the text. Use Google Dependencies. 
 
 ## Challenges and Open Questions
 
-1. The acquisition of permissions such as capturing the screen, floating window, storage and background running. Requesting these permissions when the user clicks the Permission Button. Active the Start and Stop button only after obtaining these permissions. 
-2. Getting the area the user wants to translate. Use the screenshot function of the system. May record the position where the user has touched to clip the screenshot image, or use the image edit function of the system. 
+1. The acquisition of permissions such as capturing the screen, floating window, storage and background running. Active the Start and Stop button only after obtaining these permissions. 
+2. Getting the area the user wants to translate. Use the screenshot function of the system. May record the position where the user has touched to clip the screenshot image. 
 3. Privacy protection. Inform users in advance if the content needs to be uploaded. Store all data such as images locally. Do not record anything when the user clicks the screenshot button. 
 
 Question: Does Android allow an app to do the screenshot without using the Android system's own screenshot function? Are there any possible solutions to implement a self-defined screenshot function and are there any apps did this before?

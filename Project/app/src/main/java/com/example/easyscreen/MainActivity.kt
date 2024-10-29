@@ -32,7 +32,6 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.io.IOException
 
 
-
 class MainActivity : ComponentActivity() {
 
     private lateinit var languageSpinner: Spinner
@@ -46,6 +45,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var mediaProjectionManager: MediaProjectionManager
     private lateinit var screenCaptureLauncher: ActivityResultLauncher<Intent>
     private var resultData: Intent? = null
+    private var isServiceStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,7 +64,12 @@ class MainActivity : ComponentActivity() {
 
         // 监听语言选择事件
         languageSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            override fun onItemSelected(
+                parent: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
                 val newLanguage = languages[position]
                 if (newLanguage != selectedLanguage) {
                     selectedLanguage = newLanguage
@@ -91,11 +96,9 @@ class MainActivity : ComponentActivity() {
 //        }
 
         startButton = findViewById(R.id.startButton)
-        startButton.setOnClickListener {
-//            startService(Intent(this, FloatingButtonService::class.java))
-        }
 
-        mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        mediaProjectionManager =
+            getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
 
         screenCaptureLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -103,19 +106,37 @@ class MainActivity : ComponentActivity() {
             if (result.resultCode == Activity.RESULT_OK) {
                 resultData = result.data
                 // 启动 Service 并传递权限数据
-                startMyService(resultData)
+                //startMyService(resultData)
             } else {
                 Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
             }
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
-            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
+            val intent =
+                Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
             val OVERLAY_PERMISSION_REQUEST_CODE = 1234
             startActivityForResult(intent, OVERLAY_PERMISSION_REQUEST_CODE)
         }
 
+        startButton.setOnClickListener {
+            if (!isServiceStarted) {
+                startMyService(resultData)
+                startButton.text = "Stop"
+            } else {
+//                Toast.makeText(this, "Service already started", Toast.LENGTH_SHORT).show()
+                stopMyService()
+                startButton.text = "Start"
+
+            }
+            //startService(Intent(this, FloatingButtonService::class.java))
+
+
+        }
+
         startScreenCapture()
+
+
     }
 
 
@@ -129,7 +150,16 @@ class MainActivity : ComponentActivity() {
             putExtra("media_projection_data", resultData)
         }
         startForegroundService(serviceIntent)
+        isServiceStarted = true
     }
+
+    //write a function to stop the service
+    private fun stopMyService() {
+        val serviceIntent = Intent(this, FloatingButtonService::class.java)
+        stopService(serviceIntent)
+        isServiceStarted = false
+    }
+
 
     private fun takeScreenshot() {
         val rootView = window.decorView.rootView
@@ -167,7 +197,8 @@ class MainActivity : ComponentActivity() {
             }
 
             // 插入图片并获取 URI
-            val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+            val uri =
+                contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
 
             // 使用输出流将位图写入 URI
             uri?.let {
@@ -245,6 +276,11 @@ class MainActivity : ComponentActivity() {
                 e.printStackTrace()
                 Toast.makeText(this, "翻译失败", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopMyService()
     }
 }
 

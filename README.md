@@ -1,7 +1,7 @@
 # EasyScreen Translator
 
 Dingyuan Xue, Sicen Liu 
-Version #2
+Version #3
 
 ## Summary of Project
 

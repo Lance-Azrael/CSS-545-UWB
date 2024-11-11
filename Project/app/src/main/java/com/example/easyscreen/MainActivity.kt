@@ -46,10 +46,14 @@ class MainActivity : ComponentActivity() {
     private lateinit var screenCaptureLauncher: ActivityResultLauncher<Intent>
     private var resultData: Intent? = null
     private var isServiceStarted = false
+    private var selected_Language : Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        savedInstanceState?.let {
+            selected_Language = it.getInt("counter_key", 0)
+        }
 
         // 初始化下拉菜单
         languageSpinner = findViewById(R.id.language_spinner)
@@ -88,7 +92,6 @@ class MainActivity : ComponentActivity() {
             startActivity(intent)
         }
 
-        cropView = findViewById(R.id.cropView)
 
 //        screenshotButton = findViewById(R.id.screenshotButton)
 //        screenshotButton.setOnClickListener {
@@ -137,6 +140,13 @@ class MainActivity : ComponentActivity() {
         startScreenCapture()
 
 
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // Save the counter value
+        outState.putInt("selected_language", selected_Language)
+        println("onSaveInstanceState")
     }
 
 

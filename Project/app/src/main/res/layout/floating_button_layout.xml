@@ -3,26 +3,27 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="match_parent">
 
-    <Button
+    <ImageView
         android:id="@+id/floatingButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Translate"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="69dp"
+        android:layout_height="74dp"
+        android:layout_marginEnd="4dp"
+        android:contentDescription="@string/translate"
+        android:padding="2dp"
+        android:src="@drawable/translate_24px"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/translatedText"
-        android:layout_width="271dp"
-        android:layout_height="53dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginEnd="36dp"
-        android:background="#DDA2FD"
+        android:layout_width="324dp"
+        android:layout_height="69dp"
+        android:layout_marginBottom="4dp"
+        android:background="#E4BDFF"
         android:visibility="invisible"
-        app:layout_constraintEnd_toStartOf="@+id/floatingButton"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

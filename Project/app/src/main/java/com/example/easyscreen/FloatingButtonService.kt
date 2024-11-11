@@ -25,6 +25,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.os.IBinder
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Display
 import android.view.Gravity
@@ -32,8 +33,10 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowInsets
 import android.view.WindowManager
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -47,7 +50,7 @@ import com.google.mlkit.nl.translate.TranslatorOptions
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
-
+//import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.io.File
 import java.io.FileOutputStream
 import java.lang.Thread.sleep
@@ -61,9 +64,15 @@ class FloatingButtonService : Service() {
     private var resultData: Intent? = null
     private lateinit var windowManager: WindowManager
     private lateinit var floatingButton: View
-    private lateinit var translateButton: Button
+    private lateinit var translateButton: ImageView
     private lateinit var translatedTextView: TextView
     private var cnt = 0
+
+    private var xDelta = 0f
+    private var yDelta = 0f
+
+    private var windowX: Int = 0
+    private var windowY: Int = 0
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -83,28 +92,59 @@ class FloatingButtonService : Service() {
         floatingButton = LayoutInflater.from(this).inflate(R.layout.floating_button_layout, null)
         translateButton = floatingButton.findViewById(R.id.floatingButton)
         translatedTextView = floatingButton.findViewById(R.id.translatedText)
+
+        windowX = getScreenSizeInService(this).first
+        windowY = getScreenSizeInService(this).second
+
+        var move = false
+        translateButton.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    // 记录初始位置
+                    xDelta = v.x - event.rawX
+                    yDelta = v.y - event.rawY
+                    move = false
+                    true
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    // 更新按钮位置
+                    v.animate()
+                        .x(event.rawX + xDelta)
+                        .y(event.rawY + yDelta)
+                        .setDuration(0)
+                        .start()
+                    move = true
+                    true
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    if (!move) {
+                        // 点击事件
+                        v.performClick()
+                    }
+                    true
+                }
+
+                else -> false
+            }
+        }
+
         translateButton.setOnClickListener {
 //            takeScreenshot()
             cnt = 0
             Clip()
-//            val imagesDir =
-//                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-//            println(imagesDir)
-//            val file = File(
-//                imagesDir, "screenshot.png"
-//            )
-//            val screenshotFile = File(imagesDir, "screenshot.png")
-//            var bitmap = BitmapFactory.decodeFile(screenshotFile.path)
-
-//            translateCroppedBitmap(bitmap)
         }
+
 
         //        // 设置悬浮按钮的参数
         val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            else WindowManager.LayoutParams.TYPE_PHONE,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            else
+                WindowManager.LayoutParams.TYPE_PHONE,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         )
@@ -112,7 +152,7 @@ class FloatingButtonService : Service() {
         // 设置悬浮按钮的位置
         params.gravity = Gravity.TOP or Gravity.START
         params.x = 0
-        params.y = 100
+        params.y = 0
 
         // 添加悬浮按钮到窗口
         windowManager.addView(floatingButton, params)
@@ -122,6 +162,31 @@ class FloatingButtonService : Service() {
 //        }
         return START_STICKY
     }
+
+
+    fun getScreenSizeInService(service: Service): Pair<Int, Int> {
+        val windowManager = service.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // 使用 WindowMetrics API (API Level 30 及以上)
+            val windowMetrics = windowManager.currentWindowMetrics
+            val insets = windowMetrics.windowInsets.getInsetsIgnoringVisibility(
+                WindowInsets.Type.systemBars()
+            )
+            val width = windowMetrics.bounds.width() - insets.left - insets.right
+            val height = windowMetrics.bounds.height() - insets.top - insets.bottom
+            width to height
+        } else {
+            // 使用 DisplayMetrics (API Level 29 及以下)
+            val displayMetrics = DisplayMetrics()
+            @Suppress("DEPRECATION")
+            windowManager.defaultDisplay.getMetrics(displayMetrics)
+            val width = displayMetrics.widthPixels
+            val height = displayMetrics.heightPixels
+            width to height
+        }
+    }
+
 
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -258,7 +323,10 @@ class FloatingButtonService : Service() {
                 val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
 
-                val inputImage = InputImage.fromFilePath(this@FloatingButtonService, Uri.fromFile(screenshotFile))
+                val inputImage = InputImage.fromFilePath(
+                    this@FloatingButtonService,
+                    Uri.fromFile(screenshotFile)
+                )
 
                 // 进行文本识别
                 recognizer.process(inputImage)
@@ -308,7 +376,11 @@ class FloatingButtonService : Service() {
                         println("Translate result: $translatedText")
                         translatedTextView.visibility = View.VISIBLE
                         translatedTextView.text = "Translated: $translatedText"
-                        Toast.makeText(this@FloatingButtonService, "Result: $translatedText", Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            this@FloatingButtonService,
+                            "Result: $translatedText",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                     .addOnFailureListener { e ->
                         e.printStackTrace()
@@ -335,7 +407,7 @@ class FloatingButtonService : Service() {
 
             private fun captureScreenshot(startX: Float, startY: Float, endX: Float, endY: Float) {
                 println("enter captureScreenshot")
-                imageReader = ImageReader.newInstance(1080, 1920, PixelFormat.RGBA_8888, 1)
+                imageReader = ImageReader.newInstance(windowX, windowY, PixelFormat.RGBA_8888, 1)
                 println("imageReader created")
                 virtualDisplay = mediaProjection.createVirtualDisplay(
                     "Screenshot",
@@ -388,7 +460,6 @@ class FloatingButtonService : Service() {
                         imageReader.close()
                         virtualDisplay.release()
                     }
-
 
 
 //                    imageReader.close()

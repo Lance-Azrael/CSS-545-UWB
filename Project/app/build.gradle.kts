@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.text.recognition)
     implementation(libs.translate)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -1,71 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    android:padding="16dp">
+    android:gravity="top|center_horizontal"
+    android:padding="0dp"
+    android:background="@android:color/white">
 
+
+    <!-- App Title -->
+    <TextView
+        android:id="@+id/app_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="EasyScreen Translator"
+        android:textSize="35sp"
+        android:fontFamily="@font/freckle_face"
+        android:textColor="@android:color/white"
+        android:gravity="center"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:paddingTop="40dp"
+        android:paddingBottom="40dp"
+        android:background="@drawable/title_background"/>
+        />
+
+
+    <!-- Translate to -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Translate to"
-        android:textSize="18sp"
-        android:layout_marginBottom="8dp" />
+        android:textSize="25sp"
+        android:fontFamily="@font/sour_gummy"
+        android:textColor="#4E2A82"
+        android:layout_marginTop="60dp"
+        android:gravity="center"/>
 
-    <!-- 语言选择下拉菜单 -->
+
+    <!-- Language Spinner -->
     <Spinner
         android:id="@+id/language_spinner"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/spinner_background"
+        android:layout_marginLeft="135dp"
+        android:layout_marginRight="135dp"
+        android:textSize="16sp"
+        android:fontFamily="@font/sour_gummy"
+        android:gravity="center_vertical"/>
 
-<!--    &lt;!&ndash; 开始按钮 &ndash;&gt;-->
-<!--    <Button-->
-<!--        android:id="@+id/start_button"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text="Start" />-->
+
+    <!-- Start Button -->
+    <Button
+        android:id="@+id/startButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start"
+        android:textSize="25sp"
+        android:fontFamily="@font/sour_gummy"
+        android:drawableLeft="@drawable/ic_start"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp"
+        android:gravity="center"
+        android:textColor="@android:color/white"
+        android:background="@drawable/button_background"
+        android:layout_marginTop="30dp"/>
+
 
     <!-- 用户按钮 -->
     <Button
         android:id="@+id/user_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="User" />
-
-<!--    &lt;!&ndash; 截屏按钮 &ndash;&gt;-->
-<!--    <Button-->
-<!--        android:id="@+id/screenshotButton"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_alignParentBottom="true"-->
-<!--        android:layout_centerHorizontal="true"-->
-<!--        android:layout_marginBottom="16dp"-->
-<!--        android:text="截屏" />-->
-
-    <!-- 自定义裁剪视图,为包名下的CropView -->
-    <com.example.easyscreen.CropView
-        android:id="@+id/cropView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="match_parent"
-        android:layout_height="146dp"
-        android:layout_centerHorizontal="true"
+        android:layout_marginTop="80dp"
+        android:background="@drawable/button_background"
+        android:drawableLeft="@drawable/ic_user"
+        android:fontFamily="@font/sour_gummy"
         android:gravity="center"
-        android:text="Easy Screen"
-        android:textSize="24sp" />
-
-    <Button
-        android:id="@+id/startButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textView"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true"
-        android:text="Start" />
+        android:paddingLeft="15dp"
+        android:paddingTop="10dp"
+        android:paddingRight="15dp"
+        android:paddingBottom="10dp"
+        android:text=" User"
+        android:textColor="@android:color/white"
+        android:textSize="25sp" />
 
 </LinearLayout>

@@ -538,11 +538,18 @@ class FloatingButtonService : Service() {
 
             private fun captureScreenshot(startX: Float, startY: Float, endX: Float, endY: Float) {
                 println("enter captureScreenshot")
-                imageReader = ImageReader.newInstance(windowX, windowY, PixelFormat.RGBA_8888, 1)
+                val displayMetrics = resources.displayMetrics
+                val screenWidth = displayMetrics.widthPixels
+                val screenHeight = displayMetrics.heightPixels
+//                val screenWidth = 1080
+//                val screenHeight = 2400
+//                Toast.makeText(this@FloatingButtonService, screenWidth.toString(), Toast.LENGTH_SHORT).show()
+//                Toast.makeText(this@FloatingButtonService, screenHeight.toString(), Toast.LENGTH_SHORT).show()
+                imageReader = ImageReader.newInstance(screenWidth, screenHeight, PixelFormat.RGBA_8888, 1)
                 println("imageReader created")
                 virtualDisplay = mediaProjection.createVirtualDisplay(
                     "Screenshot",
-                    1080, 1920, resources.displayMetrics.densityDpi,
+                    screenWidth, screenHeight, resources.displayMetrics.densityDpi,
                     DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
                     imageReader.surface, null, null
                 )
@@ -554,26 +561,39 @@ class FloatingButtonService : Service() {
                         sleep(1000)
                         val image = reader.acquireNextImage()
                         if (image != null) {
-                            val buffer = image.planes[0].buffer
                             val width = image.width
                             val height = image.height
-                            val pixels = IntArray(width * height)
-
-                            // 读取图像数据到数组中
-                            buffer.rewind()
-                            buffer.asIntBuffer().get(pixels)
-
-                            // 计算选择区域的边界
+                            val planes = image.planes
+                            val buffer = planes[0].buffer
+                            val pixelStride = planes[0].pixelStride
+                            val rowStride = planes[0].rowStride
+                            val rowPadding = rowStride - pixelStride * width
+                            val bitmap = Bitmap.createBitmap(
+                                width + rowPadding / pixelStride,
+                                height,
+                                Bitmap.Config.ARGB_8888
+                            )
+                            bitmap.copyPixelsFromBuffer(buffer);
+//                            val buffer = image.planes[0].buffer
+//                            val width = image.width
+//                            val height = image.height
+//                            val pixels = IntArray(width * height)
+//
+//                            // 读取图像数据到数组中
+//                            buffer.rewind()
+//                            buffer.asIntBuffer().get(pixels)
+//
+//                            // 计算选择区域的边界
                             val left = minOf(startX, endX).toInt()
                             val top = minOf(startY, endY).toInt()
                             val right = maxOf(startX, endX).toInt()
                             val bottom = maxOf(startY, endY).toInt()
-
-                            // 剪切图像
-                            val croppedBitmap =
-                                Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888)
+//
+//                            // 剪切图像
+//                            val croppedBitmap =
+//                                Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888)
                             val finalBitmap = Bitmap.createBitmap(
-                                croppedBitmap,
+                                bitmap,
                                 left,
                                 top,
                                 right - left,
@@ -585,7 +605,9 @@ class FloatingButtonService : Service() {
 //                            saveImage(finalBitmap)
 
                             translateCroppedBitmap(finalBitmap)
-                            croppedBitmap.recycle()
+//                            translateCroppedBitmap(bitmap)
+//                            croppedBitmap.recycle()
+                            bitmap.recycle()
                             finalBitmap.recycle()
                         }
                         image.close()

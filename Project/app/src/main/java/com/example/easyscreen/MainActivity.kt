@@ -34,51 +34,66 @@ import java.io.IOException
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var languageSpinner: Spinner
+    private lateinit var sourceLanguageSpinner: Spinner
+    private lateinit var targetLanguageSpinner: Spinner
+    private var selectedSourceLanguage: String = "Select Language"
+    private var selectedTargetLanguage: String = "Select Language"
     private lateinit var userButton: Button
-    private var selectedLanguage: String = "Select Language"
 
-    private lateinit var cropView: CropView
-    private lateinit var screenshotButton: Button
     private lateinit var startButton: Button
-    private var screenshotBitmap: Bitmap? = null
     private lateinit var mediaProjectionManager: MediaProjectionManager
     private lateinit var screenCaptureLauncher: ActivityResultLauncher<Intent>
     private var resultData: Intent? = null
     private var isServiceStarted = false
-    private var selected_Language : Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        savedInstanceState?.let {
-            selected_Language = it.getInt("counter_key", 0)
+
+        // language spinner
+        sourceLanguageSpinner = findViewById(R.id.source_language_spinner)
+        val sourceLanguages = arrayOf("English", "Chinese", "Spanish", "French")
+        val sourceAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, sourceLanguages)
+        sourceLanguageSpinner.adapter = sourceAdapter
+
+        targetLanguageSpinner = findViewById(R.id.target_language_spinner)
+        val targetLanguages = arrayOf("English", "Chinese", "Spanish", "French")
+        val targetAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, targetLanguages)
+        targetLanguageSpinner.adapter = targetAdapter
+
+        // language preference
+        val sharedPrefs = getSharedPreferences("AppPrefs", MODE_PRIVATE)
+        selectedSourceLanguage = sharedPrefs.getString("sourceLanguage", "English") ?: "English"
+        selectedTargetLanguage = sharedPrefs.getString("targetLanguage", "English") ?: "English"
+        sourceLanguageSpinner.setSelection(sourceLanguages.indexOf(selectedSourceLanguage))
+        targetLanguageSpinner.setSelection(targetLanguages.indexOf(selectedTargetLanguage))
+
+        // listener for selecting language
+        sourceLanguageSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val newLanguage = sourceLanguages[position]
+                if (newLanguage != selectedSourceLanguage) {
+                    selectedSourceLanguage = newLanguage
+                    sharedPrefs.edit().putString("sourceLanguage", selectedSourceLanguage).apply()
+                    Toast.makeText(this@MainActivity, "重启翻译功能时生效", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        // 初始化下拉菜单
-        languageSpinner = findViewById(R.id.language_spinner)
-        val languages = arrayOf("English", "Chinese", "Spanish", "French")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, languages)
-        languageSpinner.adapter = adapter
-
-        // 读取之前存储的翻译语言
-        val sharedPrefs = getSharedPreferences("AppPrefs", MODE_PRIVATE)
-        selectedLanguage = sharedPrefs.getString("language", "English") ?: "English"
-        languageSpinner.setSelection(languages.indexOf(selectedLanguage))
-
-        // 监听语言选择事件
-        languageSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        targetLanguageSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
                 parent: AdapterView<*>?,
                 view: View?,
                 position: Int,
                 id: Long
             ) {
-                val newLanguage = languages[position]
-                if (newLanguage != selectedLanguage) {
-                    selectedLanguage = newLanguage
-                    sharedPrefs.edit().putString("language", selectedLanguage).apply()
-                    // Toast.makeText(this@MainActivity, "Language saved: $selectedLanguage", Toast.LENGTH_SHORT).show()
+                val newLanguage = targetLanguages[position]
+                if (newLanguage != selectedTargetLanguage) {
+                    selectedTargetLanguage = newLanguage
+                    sharedPrefs.edit().putString("targetLanguage", selectedTargetLanguage).apply()
+                    Toast.makeText(this@MainActivity, "重启翻译功能时生效", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -92,11 +107,6 @@ class MainActivity : ComponentActivity() {
             startActivity(intent)
         }
 
-
-//        screenshotButton = findViewById(R.id.screenshotButton)
-//        screenshotButton.setOnClickListener {
-//            takeScreenshot()
-//        }
 
         startButton = findViewById(R.id.startButton)
 
@@ -126,29 +136,17 @@ class MainActivity : ComponentActivity() {
             if (!isServiceStarted) {
                 startMyService(resultData)
                 startButton.text = "Stop"
+                startButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_stop, 0, 0, 0)
             } else {
-//                Toast.makeText(this, "Service already started", Toast.LENGTH_SHORT).show()
                 stopMyService()
                 startButton.text = "Start"
-
+                startButton.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_start, 0, 0, 0)
             }
-            //startService(Intent(this, FloatingButtonService::class.java))
-
-
         }
 
         startScreenCapture()
 
-
     }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        // Save the counter value
-        outState.putInt("selected_language", selected_Language)
-        println("onSaveInstanceState")
-    }
-
 
     private fun startScreenCapture() {
         val intent = mediaProjectionManager.createScreenCaptureIntent()
@@ -158,134 +156,17 @@ class MainActivity : ComponentActivity() {
     private fun startMyService(resultData: Intent?) {
         val serviceIntent = Intent(this, FloatingButtonService::class.java).apply {
             putExtra("media_projection_data", resultData)
+            putExtra("source_language", selectedSourceLanguage)
+            putExtra("target_language", selectedTargetLanguage)
         }
         startForegroundService(serviceIntent)
         isServiceStarted = true
     }
 
-    //write a function to stop the service
     private fun stopMyService() {
         val serviceIntent = Intent(this, FloatingButtonService::class.java)
         stopService(serviceIntent)
         isServiceStarted = false
-    }
-
-
-    private fun takeScreenshot() {
-        val rootView = window.decorView.rootView
-        rootView.isDrawingCacheEnabled = true
-        screenshotBitmap = Bitmap.createBitmap(rootView.drawingCache)
-        rootView.isDrawingCacheEnabled = false
-
-        // 显示 CropView
-        cropView.visibility = View.VISIBLE
-        cropView.invalidate()
-    }
-
-    fun cropScreenshot(rect: Rect) {
-        screenshotBitmap?.let { bitmap ->
-            // 计算裁剪区域
-            val croppedBitmap =
-                Bitmap.createBitmap(bitmap, rect.left, rect.top, rect.width(), rect.height())
-//            saveCroppedBitmap(croppedBitmap)
-            translateCroppedBitmap(croppedBitmap)
-        }
-
-    }
-
-    private fun saveCroppedBitmap(bitmap: Bitmap) {
-        val savedUri: Uri? = try {
-            // 获取当前时间作为文件名
-            val timeStamp = System.currentTimeMillis()
-            val imageName = "CroppedImage_$timeStamp.jpg"
-
-            // 获取图片的插入信息
-            val contentValues = ContentValues().apply {
-                put(MediaStore.Images.Media.DISPLAY_NAME, imageName)
-                put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-                put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES) // 指定保存路径
-            }
-
-            // 插入图片并获取 URI
-            val uri =
-                contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-
-            // 使用输出流将位图写入 URI
-            uri?.let {
-                contentResolver.openOutputStream(it).use { outputStream ->
-                    if (outputStream != null) {
-                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-                    }
-                }
-            }
-            uri
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
-        }
-
-        // 提示用户保存结果
-        if (savedUri != null) {
-            Toast.makeText(this, "图片已保存到相册！", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "保存失败，请重试！", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun translateCroppedBitmap(bitmap: Bitmap) {
-        // 创建文本识别器
-        val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-
-        // 将位图转换为输入图像
-        val inputImage = InputImage.fromBitmap(bitmap, 0)
-
-        // 进行文本识别
-        recognizer.process(inputImage)
-            .addOnSuccessListener { visionText ->
-                // 提取识别的文本
-                val recognizedText = visionText.text
-                if (recognizedText.isNotEmpty()) {
-                    // 调用翻译函数
-                    translateText(recognizedText)
-                    println(recognizedText)
-                } else {
-                    Toast.makeText(this, "未识别到任何文本", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .addOnFailureListener { e ->
-                e.printStackTrace()
-                Toast.makeText(this, "文本识别失败", Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    // 翻译文本的方法
-    private fun translateText(text: String) {
-        val options = TranslatorOptions.Builder()
-            .setSourceLanguage(TranslateLanguage.ENGLISH)
-            .setTargetLanguage(TranslateLanguage.CHINESE)
-            .build()
-        val translator = Translation.getClient(options)
-
-        var conditions = DownloadConditions.Builder()
-            .requireWifi()
-            .build()
-        translator.downloadModelIfNeeded(conditions)
-            .addOnSuccessListener {
-                Toast.makeText(this, "Download success", Toast.LENGTH_LONG).show()
-            }
-            .addOnFailureListener { exception ->
-                Toast.makeText(this, "Download failed", Toast.LENGTH_LONG).show()
-            }
-
-        translator.translate(text)
-            .addOnSuccessListener { translatedText ->
-                // 显示翻译结果
-                Toast.makeText(this, "翻译结果: $translatedText", Toast.LENGTH_LONG).show()
-            }
-            .addOnFailureListener { e ->
-                e.printStackTrace()
-                Toast.makeText(this, "翻译失败", Toast.LENGTH_SHORT).show()
-            }
     }
 
     override fun onDestroy() {

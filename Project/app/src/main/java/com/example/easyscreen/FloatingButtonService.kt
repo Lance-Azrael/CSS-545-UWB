@@ -58,6 +58,9 @@ import java.lang.Thread.sleep
 
 class FloatingButtonService : Service() {
 
+    private lateinit var sourceLanguage : String
+    private lateinit var targetLanguage : String
+
     private lateinit var mediaProjection: MediaProjection
     private lateinit var virtualDisplay: VirtualDisplay
     private lateinit var imageReader: ImageReader
@@ -66,6 +69,7 @@ class FloatingButtonService : Service() {
     private lateinit var floatingButton: View
     private lateinit var translateButton: ImageView
     private lateinit var translatedTextView: TextView
+    private lateinit var back_button: Button
     private var cnt = 0
 
     private var xDelta = 0f
@@ -77,6 +81,10 @@ class FloatingButtonService : Service() {
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         resultData = intent?.getParcelableExtra("media_projection_data")
+        sourceLanguage = intent?.getStringExtra("source_language").toString()
+        targetLanguage = intent?.getStringExtra("target_language").toString()
+        println(sourceLanguage)
+
         if (resultData != null) {
 
 
@@ -88,10 +96,12 @@ class FloatingButtonService : Service() {
                 resultData!!
             )
         }
+
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         floatingButton = LayoutInflater.from(this).inflate(R.layout.floating_button_layout, null)
         translateButton = floatingButton.findViewById(R.id.floatingButton)
         translatedTextView = floatingButton.findViewById(R.id.translatedText)
+        back_button = floatingButton.findViewById(R.id.back_button)
 
         windowX = getScreenSizeInService(this).first
         windowY = getScreenSizeInService(this).second
@@ -134,6 +144,11 @@ class FloatingButtonService : Service() {
 //            takeScreenshot()
             cnt = 0
             Clip()
+        }
+
+        back_button.setOnClickListener {
+            translatedTextView.visibility = View.INVISIBLE
+            back_button.visibility = View.INVISIBLE
         }
 
 
@@ -349,11 +364,20 @@ class FloatingButtonService : Service() {
                     }
             }
 
+            private fun languageSelected(language: String): String {
+                return when (language) {
+                    "Chinese" -> TranslateLanguage.CHINESE
+                    "Spanish" -> TranslateLanguage.SPANISH
+                    "French" -> TranslateLanguage.FRENCH
+                    else -> TranslateLanguage.ENGLISH
+                }
+            }
+
             private fun translateText(text: String) {
                 println("enter translateText")
                 val options = TranslatorOptions.Builder()
-                    .setSourceLanguage(TranslateLanguage.ENGLISH)
-                    .setTargetLanguage(TranslateLanguage.CHINESE)
+                    .setSourceLanguage(languageSelected(sourceLanguage))
+                    .setTargetLanguage(languageSelected(targetLanguage))
                     .build()
                 val translator = Translation.getClient(options)
 
@@ -375,12 +399,8 @@ class FloatingButtonService : Service() {
                         // 显示翻译结果
                         println("Translate result: $translatedText")
                         translatedTextView.visibility = View.VISIBLE
-                        translatedTextView.text = "Translated: $translatedText"
-                        Toast.makeText(
-                            this@FloatingButtonService,
-                            "Result: $translatedText",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        translatedTextView.text = "$translatedText"
+                        back_button.visibility = View.VISIBLE
                     }
                     .addOnFailureListener { e ->
                         e.printStackTrace()

@@ -27,6 +27,19 @@
         />
 
 
+    <!-- Language Spinner -->
+    <Spinner
+        android:id="@+id/source_language_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="@drawable/spinner_background"
+        android:layout_marginLeft="135dp"
+        android:layout_marginRight="135dp"
+        android:textSize="16sp"
+        android:fontFamily="@font/sour_gummy"
+        android:layout_marginTop="80dp"
+        android:gravity="center_vertical"/>
+
     <!-- Translate to -->
     <TextView
         android:layout_width="wrap_content"
@@ -35,15 +48,16 @@
         android:textSize="25sp"
         android:fontFamily="@font/sour_gummy"
         android:textColor="#4E2A82"
-        android:layout_marginTop="60dp"
-        android:gravity="center"/>
+        android:gravity="center"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"/>
 
 
     <!-- Language Spinner -->
     <Spinner
-        android:id="@+id/language_spinner"
+        android:id="@+id/target_language_spinner"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="40dp"
         android:background="@drawable/spinner_background"
         android:layout_marginLeft="135dp"
         android:layout_marginRight="135dp"
@@ -68,7 +82,7 @@
         android:gravity="center"
         android:textColor="@android:color/white"
         android:background="@drawable/button_background"
-        android:layout_marginTop="30dp"/>
+        android:layout_marginTop="50dp"/>
 
 
     <!-- 用户按钮 -->

@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.Rect
@@ -36,6 +37,7 @@ import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.WindowManager
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -50,7 +52,6 @@ import com.google.mlkit.nl.translate.TranslatorOptions
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
-//import edu.stanford.nlp.pipeline.*
 //import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.io.File
 import java.io.FileOutputStream
@@ -71,7 +72,7 @@ class FloatingButtonService : Service() {
     private lateinit var floatingButton: View
     private lateinit var translateButton: ImageView
     private lateinit var translatedTextView: TextView
-    private lateinit var back_button: Button
+    private lateinit var back_button: ImageButton
     private var cnt = 0
 
     private var xDelta = 0f
@@ -89,10 +90,9 @@ class FloatingButtonService : Service() {
         sourceLanguage = intent?.getStringExtra("source_language").toString()
         targetLanguage = intent?.getStringExtra("target_language").toString()
         println(sourceLanguage)
+        println(targetLanguage)
 
         if (resultData != null) {
-
-
             createNotification()
             val mediaProjectionManager =
                 getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
@@ -166,7 +166,6 @@ class FloatingButtonService : Service() {
             windowManager.updateViewLayout(floatingButton, params)
 
         }
-
 
 
         //        // 设置悬浮按钮的参数
@@ -272,30 +271,30 @@ class FloatingButtonService : Service() {
         startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
     }
 
-    private fun takeScreenshot() {
-        // 设置图像读取器
-        imageReader = ImageReader.newInstance(1080, 1920, PixelFormat.RGBA_8888, 1)
-
-        virtualDisplay = mediaProjection.createVirtualDisplay(
-            "Screenshot",
-            1080, 1920, resources.displayMetrics.densityDpi,
-            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-            imageReader.surface, null, null
-        )
-
-        imageReader.setOnImageAvailableListener({ reader ->
-            val image = reader.acquireLatestImage()
-            // 处理图像保存或其他操作
-            saveImage(image)
-            image.close()
-        }, null)
-
-        // 提示：在适当的时候释放资源
-//        imageReader.close()
-//        virtualDisplay.release()
-//        mediaProjection.stop()
-
-    }
+//    private fun takeScreenshot() {
+//        // 设置图像读取器
+//        imageReader = ImageReader.newInstance(1080, 1920, PixelFormat.RGBA_8888, 1)
+//
+//        virtualDisplay = mediaProjection.createVirtualDisplay(
+//            "Screenshot",
+//            1080, 1920, resources.displayMetrics.densityDpi,
+//            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+//            imageReader.surface, null, null
+//        )
+//
+//        imageReader.setOnImageAvailableListener({ reader ->
+//            val image = reader.acquireLatestImage()
+//            // 处理图像保存或其他操作
+////            saveImage(image)
+//            image.close()
+//        }, null)
+//
+//        // 提示：在适当的时候释放资源
+////        imageReader.close()
+////        virtualDisplay.release()
+////        mediaProjection.stop()
+//
+//    }
 
     private fun Clip() {
         // 创建截图覆盖层
@@ -364,22 +363,30 @@ class FloatingButtonService : Service() {
 
 
             private fun translateCroppedBitmap(bitmap: Bitmap) {
+                val outputBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(outputBitmap)
+                canvas.drawBitmap(bitmap, 0f, 0f, null)
+
                 cnt++
-                val imagesDir =
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-                println("enter translateCroppedBitmap")
-                val file = File(
-                    imagesDir, "screenshot.png"
-                )
-                val screenshotFile = File(imagesDir, "screenshot.png")
+//                val imagesDir =
+//                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+//                println("enter translateCroppedBitmap")
+//                val file = File(
+//                    imagesDir, "screenshot.png"
+//                )
+//                val screenshotFile = File(imagesDir, "screenshot.png")
                 // 创建文本识别器
                 val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
 
-                val inputImage = InputImage.fromFilePath(
-                    this@FloatingButtonService,
-                    Uri.fromFile(screenshotFile)
-                )
+//                val inputImage1 = InputImage.fromFilePath(
+//                    this@FloatingButtonService,
+//                    Uri.fromFile(screenshotFile)
+//                )
+
+
+                val inputImage = InputImage.fromBitmap(outputBitmap, 0)
+
 
                 // 进行文本识别
                 recognizer.process(inputImage)
@@ -394,6 +401,7 @@ class FloatingButtonService : Service() {
                             translateText(cleanedText)
 //                            Log.d("recognizedText", recognizedText)
                         } else {
+                            translateText("Text not recognized")
                             println("未识别到任何文本")
 //                            Toast.makeText(this@FloatingButtonService, "未识别到任何文本", Toast.LENGTH_SHORT).show()
                         }
@@ -407,12 +415,69 @@ class FloatingButtonService : Service() {
 
             private fun languageSelected(language: String): String {
                 return when (language) {
+                    "Afrikaans" -> TranslateLanguage.AFRIKAANS
+                    "Albanian" -> TranslateLanguage.ALBANIAN
+                    "Arabic" -> TranslateLanguage.ARABIC
+                    "Belarusian" -> TranslateLanguage.BELARUSIAN
+                    "Bengali" -> TranslateLanguage.BENGALI
+                    "Bulgarian" -> TranslateLanguage.BULGARIAN
+                    "Catalan" -> TranslateLanguage.CATALAN
                     "Chinese" -> TranslateLanguage.CHINESE
-                    "Spanish" -> TranslateLanguage.SPANISH
+                    "Croatian" -> TranslateLanguage.CROATIAN
+                    "Czech" -> TranslateLanguage.CZECH
+                    "Danish" -> TranslateLanguage.DANISH
+                    "Dutch" -> TranslateLanguage.DUTCH
+                    "English" -> TranslateLanguage.ENGLISH
+                    "Esperanto" -> TranslateLanguage.ESPERANTO
+                    "Estonian" -> TranslateLanguage.ESTONIAN
+                    "Finnish" -> TranslateLanguage.FINNISH
                     "French" -> TranslateLanguage.FRENCH
+                    "Galician" -> TranslateLanguage.GALICIAN
+                    "Georgian" -> TranslateLanguage.GEORGIAN
+                    "German" -> TranslateLanguage.GERMAN
+                    "Greek" -> TranslateLanguage.GREEK
+                    "Gujarati" -> TranslateLanguage.GUJARATI
+                    "Haitian Creole" -> TranslateLanguage.HAITIAN_CREOLE
+                    "Hebrew" -> TranslateLanguage.HEBREW
+                    "Hindi" -> TranslateLanguage.HINDI
+                    "Hungarian" -> TranslateLanguage.HUNGARIAN
+                    "Icelandic" -> TranslateLanguage.ICELANDIC
+                    "Indonesian" -> TranslateLanguage.INDONESIAN
+                    "Irish" -> TranslateLanguage.IRISH
+                    "Italian" -> TranslateLanguage.ITALIAN
+                    "Japanese" -> TranslateLanguage.JAPANESE
+                    "Kannada" -> TranslateLanguage.KANNADA
+                    "Korean" -> TranslateLanguage.KOREAN
+                    "Lithuanian" -> TranslateLanguage.LITHUANIAN
+                    "Latvian" -> TranslateLanguage.LATVIAN
+                    "Macedonian" -> TranslateLanguage.MACEDONIAN
+                    "Marathi" -> TranslateLanguage.MARATHI
+                    "Malay" -> TranslateLanguage.MALAY
+                    "Maltese" -> TranslateLanguage.MALTESE
+                    "Norwegian" -> TranslateLanguage.NORWEGIAN
+                    "Persian" -> TranslateLanguage.PERSIAN
+                    "Polish" -> TranslateLanguage.POLISH
+                    "Portuguese" -> TranslateLanguage.PORTUGUESE
+                    "Romanian" -> TranslateLanguage.ROMANIAN
+                    "Russian" -> TranslateLanguage.RUSSIAN
+                    "Slovak" -> TranslateLanguage.SLOVAK
+                    "Slovenian" -> TranslateLanguage.SLOVENIAN
+                    "Spanish" -> TranslateLanguage.SPANISH
+                    "Swahili" -> TranslateLanguage.SWAHILI
+                    "Swedish" -> TranslateLanguage.SWEDISH
+                    "Tagalog" -> TranslateLanguage.TAGALOG
+                    "Tamil" -> TranslateLanguage.TAMIL
+                    "Telugu" -> TranslateLanguage.TELUGU
+                    "Thai" -> TranslateLanguage.THAI
+                    "Turkish" -> TranslateLanguage.TURKISH
+                    "Ukrainian" -> TranslateLanguage.UKRAINIAN
+                    "Urdu" -> TranslateLanguage.URDU
+                    "Vietnamese" -> TranslateLanguage.VIETNAMESE
+                    "Welsh" -> TranslateLanguage.WELSH
                     else -> TranslateLanguage.ENGLISH
                 }
             }
+
 
             private fun translateText(text: String) {
                 println("enter translateText")
@@ -428,31 +493,31 @@ class FloatingButtonService : Service() {
                 translator.downloadModelIfNeeded(conditions)
                     .addOnSuccessListener {
                         println("Download success")
-//                        Toast.makeText(this@FloatingButtonService, "Download success", Toast.LENGTH_LONG).show()
+                        translator.translate(text)
+                            .addOnSuccessListener { translatedText ->
+                                // 显示翻译结果
+                                println("Translate result: $translatedText")
+                                translatedTextView.visibility = View.VISIBLE
+                                translatedTextView.text = "$translatedText"
+                                back_button.visibility = View.VISIBLE
+                                //update the width and height of floatting button
+                                var params = floatingButton.layoutParams
+                                params.width = WindowManager.LayoutParams.WRAP_CONTENT
+                                params.height = WindowManager.LayoutParams.WRAP_CONTENT
+                                windowManager.updateViewLayout(floatingButton, params)
+                            }
+                            .addOnFailureListener { e ->
+                                e.printStackTrace()
+                                println("翻译失败")
+//                        Toast.makeText(this@FloatingButtonService, "翻译失败", Toast.LENGTH_SHORT).show()
+                            }
                     }
                     .addOnFailureListener { exception ->
                         println("Download failed")
 //                        Toast.makeText(this@FloatingButtonService, "Download failed", Toast.LENGTH_LONG).show()
                     }
 
-                translator.translate(text)
-                    .addOnSuccessListener { translatedText ->
-                        // 显示翻译结果
-                        println("Translate result: $translatedText")
-                        translatedTextView.visibility = View.VISIBLE
-                        translatedTextView.text = "$translatedText"
-                        back_button.visibility = View.VISIBLE
-                        //update the width and height of floatting button
-                        var params = floatingButton.layoutParams
-                        params.width = WindowManager.LayoutParams.WRAP_CONTENT
-                        params.height = WindowManager.LayoutParams.WRAP_CONTENT
-                        windowManager.updateViewLayout(floatingButton, params)
-                    }
-                    .addOnFailureListener { e ->
-                        e.printStackTrace()
-                        println("翻译失败")
-//                        Toast.makeText(this@FloatingButtonService, "翻译失败", Toast.LENGTH_SHORT).show()
-                    }
+
             }
 
             private fun updateSelectionRect(
@@ -517,7 +582,8 @@ class FloatingButtonService : Service() {
 
                             // 保存图像
 //                        translateCroppedBitmap(finalBitmap)
-                            saveImage(finalBitmap)
+//                            saveImage(finalBitmap)
+
                             translateCroppedBitmap(finalBitmap)
                             croppedBitmap.recycle()
                             finalBitmap.recycle()
@@ -545,44 +611,44 @@ class FloatingButtonService : Service() {
 //        stopSelf()
     }
 
-    private fun saveImage(bitmap: Bitmap) {
-        println("enter saveImage")
-        cnt++
-        val imagesDir =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-//        println(imagesDir)
-        val file = File(
-            imagesDir, "screenshot.png"
-        )
-        val screenshotFile = File(imagesDir, "screenshot.png")
-        FileOutputStream(file).use { outputStream ->
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-            outputStream.flush()
-        }
-        MediaScannerConnection.scanFile(this, arrayOf(screenshotFile.path), null, null)
-        println("capture saved")
-//        Toast.makeText(this, "Screenshot saved", Toast.LENGTH_SHORT).show()
-//        stopSelf()
-    }
-
-
-    private fun saveImage(image: Image) {
-        val bitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
-        bitmap.copyPixelsFromBuffer(image.planes[0].buffer)
-
-        val imagesDir =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-        val screenshotFile = File(imagesDir, "screenshot.png")
-
-        val fos = FileOutputStream(screenshotFile)
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
-        fos.close()
-
-        MediaScannerConnection.scanFile(this, arrayOf(screenshotFile.path), null, null)
-
-//        Toast.makeText(this, "Screenshot saved", Toast.LENGTH_SHORT).show()
-//        stopSelf()
-    }
+//    private fun saveImage(bitmap: Bitmap) {
+//        println("enter saveImage")
+//        cnt++
+//        val imagesDir =
+//            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+////        println(imagesDir)
+//        val file = File(
+//            imagesDir, "screenshot.png"
+//        )
+//        val screenshotFile = File(imagesDir, "screenshot.png")
+//        FileOutputStream(file).use { outputStream ->
+//            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+//            outputStream.flush()
+//        }
+//        MediaScannerConnection.scanFile(this, arrayOf(screenshotFile.path), null, null)
+//        println("capture saved")
+////        Toast.makeText(this, "Screenshot saved", Toast.LENGTH_SHORT).show()
+////        stopSelf()
+//    }
+//
+//
+//    private fun saveImage(image: Image) {
+//        val bitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
+//        bitmap.copyPixelsFromBuffer(image.planes[0].buffer)
+//
+//        val imagesDir =
+//            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+//        val screenshotFile = File(imagesDir, "screenshot.png")
+//
+//        val fos = FileOutputStream(screenshotFile)
+//        bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
+//        fos.close()
+//
+//        MediaScannerConnection.scanFile(this, arrayOf(screenshotFile.path), null, null)
+//
+////        Toast.makeText(this, "Screenshot saved", Toast.LENGTH_SHORT).show()
+////        stopSelf()
+//    }
 
     fun splitSentencesWithNewlineAndCase(text: String): List<String> {
         val sentences = mutableListOf<String>()

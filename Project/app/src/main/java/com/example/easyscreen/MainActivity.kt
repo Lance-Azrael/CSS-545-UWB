@@ -51,15 +51,48 @@ class MainActivity : ComponentActivity() {
         setContentView(R.layout.activity_main)
 
         // language spinner
+//        sourceLanguageSpinner = findViewById(R.id.source_language_spinner)
+//        val sourceLanguages = arrayOf("English", "Chinese", "Spanish", "French")
+//        val sourceAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, sourceLanguages)
+//        sourceLanguageSpinner.adapter = sourceAdapter
+//
+//        targetLanguageSpinner = findViewById(R.id.target_language_spinner)
+//        val targetLanguages = arrayOf("English", "Chinese", "Spanish", "French")
+//        val targetAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, targetLanguages)
+//        targetLanguageSpinner.adapter = targetAdapter
+
+        // language spinner
         sourceLanguageSpinner = findViewById(R.id.source_language_spinner)
-        val sourceLanguages = arrayOf("English", "Chinese", "Spanish", "French")
+        val sourceLanguages = arrayOf(
+            "Afrikaans", "Albanian", "Arabic", "Belarusian", "Bengali", "Bulgarian", "Catalan",
+            "Chinese", "Croatian", "Czech", "Danish", "Dutch", "English", "Esperanto", "Estonian",
+            "Finnish", "French", "Galician", "Georgian", "German", "Greek", "Gujarati",
+            "Haitian Creole", "Hebrew", "Hindi", "Hungarian", "Icelandic", "Indonesian",
+            "Irish", "Italian", "Japanese", "Kannada", "Korean", "Lithuanian", "Latvian",
+            "Macedonian", "Marathi", "Malay", "Maltese", "Norwegian", "Persian", "Polish",
+            "Portuguese", "Romanian", "Russian", "Slovak", "Slovenian", "Spanish", "Swahili",
+            "Swedish", "Tagalog", "Tamil", "Telugu", "Thai", "Turkish", "Ukrainian", "Urdu",
+            "Vietnamese", "Welsh"
+        )
         val sourceAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, sourceLanguages)
         sourceLanguageSpinner.adapter = sourceAdapter
 
         targetLanguageSpinner = findViewById(R.id.target_language_spinner)
-        val targetLanguages = arrayOf("English", "Chinese", "Spanish", "French")
+        val targetLanguages = arrayOf(
+            "Afrikaans", "Albanian", "Arabic", "Belarusian", "Bengali", "Bulgarian", "Catalan",
+            "Chinese", "Croatian", "Czech", "Danish", "Dutch", "English", "Esperanto", "Estonian",
+            "Finnish", "French", "Galician", "Georgian", "German", "Greek", "Gujarati",
+            "Haitian Creole", "Hebrew", "Hindi", "Hungarian", "Icelandic", "Indonesian",
+            "Irish", "Italian", "Japanese", "Kannada", "Korean", "Lithuanian", "Latvian",
+            "Macedonian", "Marathi", "Malay", "Maltese", "Norwegian", "Persian", "Polish",
+            "Portuguese", "Romanian", "Russian", "Slovak", "Slovenian", "Spanish", "Swahili",
+            "Swedish", "Tagalog", "Tamil", "Telugu", "Thai", "Turkish", "Ukrainian", "Urdu",
+            "Vietnamese", "Welsh"
+        )
         val targetAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, targetLanguages)
         targetLanguageSpinner.adapter = targetAdapter
+
+
 
         // language preference
         val sharedPrefs = getSharedPreferences("AppPrefs", MODE_PRIVATE)

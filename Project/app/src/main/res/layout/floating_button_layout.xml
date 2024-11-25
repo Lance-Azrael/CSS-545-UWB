@@ -25,11 +25,10 @@
         android:id="@+id/translatedText"
         android:layout_width="324dp"
         android:layout_height="100dp"
-        android:layout_marginStart="4dp"
         android:background="@drawable/text_background"
         android:paddingLeft="10dp"
         android:paddingTop="5dp"
-        android:paddingRight="10dp"
+        android:paddingRight="30dp"
         android:paddingBottom="5dp"
         android:textColor="@android:color/black"
         android:textSize="15sp"
@@ -37,13 +36,16 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <Button
+    <ImageButton
         android:id="@+id/back_button"
-        android:layout_width="43dp"
-        android:layout_height="43dp"
-        android:text="X"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
         android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@+id/translatedText"
-        app:layout_constraintEnd_toEndOf="@+id/translatedText" />
+        android:src="@drawable/cancel_24px"
+        android:background="@android:color/transparent"
+        app:layout_constraintEnd_toEndOf="@+id/translatedText"
+        app:layout_constraintTop_toTopOf="@+id/translatedText" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

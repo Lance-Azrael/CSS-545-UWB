@@ -50,16 +50,18 @@ import com.google.mlkit.nl.translate.TranslatorOptions
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+//import edu.stanford.nlp.pipeline.*
 //import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.io.File
 import java.io.FileOutputStream
 import java.lang.Thread.sleep
+import java.util.Properties
 
 
 class FloatingButtonService : Service() {
 
-    private lateinit var sourceLanguage : String
-    private lateinit var targetLanguage : String
+    private lateinit var sourceLanguage: String
+    private lateinit var targetLanguage: String
 
     private lateinit var mediaProjection: MediaProjection
     private lateinit var virtualDisplay: VirtualDisplay
@@ -74,6 +76,9 @@ class FloatingButtonService : Service() {
 
     private var xDelta = 0f
     private var yDelta = 0f
+
+    private var startX = 0
+    private var startY = 0
 
     private var windowX: Int = 0
     private var windowY: Int = 0
@@ -109,24 +114,24 @@ class FloatingButtonService : Service() {
         var move = false
         translateButton.setOnTouchListener { v, event ->
             when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    // 记录初始位置
-                    xDelta = v.x - event.rawX
-                    yDelta = v.y - event.rawY
-                    move = false
-                    true
-                }
-
-                MotionEvent.ACTION_MOVE -> {
-                    // 更新按钮位置
-                    v.animate()
-                        .x(event.rawX + xDelta)
-                        .y(event.rawY + yDelta)
-                        .setDuration(0)
-                        .start()
-                    move = true
-                    true
-                }
+//                MotionEvent.ACTION_DOWN -> {
+//                    // 记录初始位置
+//                    xDelta = v.x - event.rawX
+//                    yDelta = v.y - event.rawY
+//                    move = false
+//                    true
+//                }
+//
+//                MotionEvent.ACTION_MOVE -> {
+//                    // 更新按钮位置
+//                    v.animate()
+//                        .x(event.rawX + xDelta)
+//                        .y(event.rawY + yDelta)
+//                        .setDuration(0)
+//                        .start()
+//                    move = true
+//                    true
+//                }
 
                 MotionEvent.ACTION_UP -> {
                     if (!move) {
@@ -146,16 +151,28 @@ class FloatingButtonService : Service() {
             Clip()
         }
 
+        val displayMetrics = resources.displayMetrics
+        val density = displayMetrics.density
+
+        val widthInPx = (60 * density).toInt()  // 100dp 转换为像素
+        val heightInPx = (60 * density).toInt()  // 100dp 转换为像素
+
         back_button.setOnClickListener {
             translatedTextView.visibility = View.INVISIBLE
             back_button.visibility = View.INVISIBLE
+            var params = floatingButton.layoutParams
+            params.width = widthInPx
+            params.height = heightInPx
+            windowManager.updateViewLayout(floatingButton, params)
+
         }
+
 
 
         //        // 设置悬浮按钮的参数
         val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
+            widthInPx,
+            heightInPx,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             else
@@ -169,6 +186,28 @@ class FloatingButtonService : Service() {
         params.x = 0
         params.y = 0
 
+        floatingButton.setOnTouchListener { v, event ->
+            val params = v.layoutParams as WindowManager.LayoutParams
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    // 记录触摸的起始位置
+                    startX = event.rawX.toInt()
+                    startY = event.rawY.toInt()
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    // 计算悬浮窗的新位置
+                    val dx = event.rawX.toInt() - startX
+                    val dy = event.rawY.toInt() - startY
+                    params.x += dx
+                    params.y += dy
+                    windowManager.updateViewLayout(v, params)
+                    startX = event.rawX.toInt()
+                    startY = event.rawY.toInt()
+                }
+            }
+            true
+        }
         // 添加悬浮按钮到窗口
         windowManager.addView(floatingButton, params)
 
@@ -201,7 +240,6 @@ class FloatingButtonService : Service() {
             width to height
         }
     }
-
 
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -350,7 +388,10 @@ class FloatingButtonService : Service() {
                         val recognizedText = visionText.text
                         if (recognizedText.isNotEmpty()) {
                             // 调用翻译函数
-                            translateText(recognizedText)
+//                            val cleanedText = recognizedText.replace(Regex("[\\n\\t]+"), ".")
+                            val sentences = splitSentencesWithNewlineAndCase(recognizedText)
+                            val cleanedText = sentences.joinToString("\n")
+                            translateText(cleanedText)
 //                            Log.d("recognizedText", recognizedText)
                         } else {
                             println("未识别到任何文本")
@@ -401,6 +442,11 @@ class FloatingButtonService : Service() {
                         translatedTextView.visibility = View.VISIBLE
                         translatedTextView.text = "$translatedText"
                         back_button.visibility = View.VISIBLE
+                        //update the width and height of floatting button
+                        var params = floatingButton.layoutParams
+                        params.width = WindowManager.LayoutParams.WRAP_CONTENT
+                        params.height = WindowManager.LayoutParams.WRAP_CONTENT
+                        windowManager.updateViewLayout(floatingButton, params)
                     }
                     .addOnFailureListener { e ->
                         e.printStackTrace()
@@ -536,6 +582,46 @@ class FloatingButtonService : Service() {
 
 //        Toast.makeText(this, "Screenshot saved", Toast.LENGTH_SHORT).show()
 //        stopSelf()
+    }
+
+    fun splitSentencesWithNewlineAndCase(text: String): List<String> {
+        val sentences = mutableListOf<String>()
+        val paragraphs = text.split("\n") // 先按换行符初步分段
+
+        var currentSentence = StringBuilder()
+
+        paragraphs.forEach { paragraph ->
+            if (paragraph.isNotBlank()) {
+                val trimmedParagraph = paragraph.trim()
+                // 如果是以大写字母开头，认为是新句子的开始
+                if (trimmedParagraph.first().isUpperCase() && currentSentence.isNotEmpty()) {
+                    // 检查当前句子结尾是否有标点符号
+                    val sentenceToAdd = ensureSentenceEndsWithPeriod(currentSentence.toString())
+                    sentences.add(sentenceToAdd)
+                    currentSentence = StringBuilder(trimmedParagraph)
+                } else {
+                    // 否则认为是上一句的延续
+                    if (currentSentence.isNotEmpty()) currentSentence.append(" ")
+                    currentSentence.append(trimmedParagraph)
+                }
+            }
+        }
+
+        // 添加最后的句子并确保句号
+        if (currentSentence.isNotEmpty()) {
+            val sentenceToAdd = ensureSentenceEndsWithPeriod(currentSentence.toString())
+            sentences.add(sentenceToAdd)
+        }
+
+        return sentences
+    }
+
+    fun ensureSentenceEndsWithPeriod(sentence: String): String {
+        return if (sentence.lastOrNull() in listOf('.', '!', '?')) {
+            sentence
+        } else {
+            "$sentence."
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? {

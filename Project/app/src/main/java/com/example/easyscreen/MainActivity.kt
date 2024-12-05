@@ -155,6 +155,7 @@ class MainActivity : ComponentActivity() {
                 //startMyService(resultData)
             } else {
                 Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
+//                stopMyService()
             }
         }
 

@@ -26,6 +26,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.os.IBinder
+import android.text.method.ScrollingMovementMethod
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Display
@@ -46,12 +47,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.google.mlkit.common.model.DownloadConditions
+import com.google.mlkit.common.model.RemoteModelManager
+
 import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
+import com.google.mlkit.nl.translate.TranslateRemoteModel
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
 //import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.io.File
 import java.io.FileOutputStream
@@ -73,6 +78,10 @@ class FloatingButtonService : Service() {
     private lateinit var translateButton: ImageView
     private lateinit var translatedTextView: TextView
     private lateinit var back_button: ImageButton
+
+    private lateinit var remoteModelManager: RemoteModelManager
+
+    private var mediaProjectionManager: MediaProjectionManager ?= null
     private var cnt = 0
 
     private var xDelta = 0f
@@ -84,28 +93,38 @@ class FloatingButtonService : Service() {
     private var windowX: Int = 0
     private var windowY: Int = 0
 
+    private var lastX = 0f
+    private var lastY = 0f
+    private var isDragging = false
+
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         resultData = intent?.getParcelableExtra("media_projection_data")
         sourceLanguage = intent?.getStringExtra("source_language").toString()
         targetLanguage = intent?.getStringExtra("target_language").toString()
+        remoteModelManager = RemoteModelManager.getInstance()
         println(sourceLanguage)
         println(targetLanguage)
 
         if (resultData != null) {
             createNotification()
-            val mediaProjectionManager =
+            mediaProjectionManager =
                 getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-            mediaProjection = mediaProjectionManager.getMediaProjection(
+
+            mediaProjection = mediaProjectionManager!!.getMediaProjection(
                 Activity.RESULT_OK,
                 resultData!!
             )
+
         }
 
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         floatingButton = LayoutInflater.from(this).inflate(R.layout.floating_button_layout, null)
         translateButton = floatingButton.findViewById(R.id.floatingButton)
-        translatedTextView = floatingButton.findViewById(R.id.translatedText)
+        translatedTextView = floatingButton.findViewById<TextView?>(R.id.translatedText).apply {
+            movementMethod = ScrollingMovementMethod()
+            setHorizontallyScrolling(false)
+        }
         back_button = floatingButton.findViewById(R.id.back_button)
 
         windowX = getScreenSizeInService(this).first
@@ -114,24 +133,6 @@ class FloatingButtonService : Service() {
         var move = false
         translateButton.setOnTouchListener { v, event ->
             when (event.action) {
-//                MotionEvent.ACTION_DOWN -> {
-//                    // 记录初始位置
-//                    xDelta = v.x - event.rawX
-//                    yDelta = v.y - event.rawY
-//                    move = false
-//                    true
-//                }
-//
-//                MotionEvent.ACTION_MOVE -> {
-//                    // 更新按钮位置
-//                    v.animate()
-//                        .x(event.rawX + xDelta)
-//                        .y(event.rawY + yDelta)
-//                        .setDuration(0)
-//                        .start()
-//                    move = true
-//                    true
-//                }
 
                 MotionEvent.ACTION_UP -> {
                     if (!move) {
@@ -144,6 +145,9 @@ class FloatingButtonService : Service() {
                 else -> false
             }
         }
+
+
+
 
         translateButton.setOnClickListener {
 //            takeScreenshot()
@@ -206,6 +210,44 @@ class FloatingButtonService : Service() {
                 }
             }
             true
+        }
+
+        translatedTextView.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    // 记录初始位置
+                    lastX = event.rawX
+                    lastY = event.rawY
+                    isDragging = false
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    if (event.pointerCount == 1) {
+                        // 单指操作（TextView 滑动）
+                        false // 交由 TextView 自身处理
+                    } else if (event.pointerCount == 2) {
+                        // 双指操作（拖动父视图）
+                        val deltaX = event.rawX - lastX
+                        val deltaY = event.rawY - lastY
+                        params.x += deltaX.toInt()
+                        params.y += deltaY.toInt()
+                        windowManager.updateViewLayout(floatingButton, params)
+                        lastX = event.rawX
+                        lastY = event.rawY
+                        true // 事件已处理
+                    } else {
+                        false
+                    }
+                }
+
+                MotionEvent.ACTION_UP -> {
+                    if (isDragging) {
+                        isDragging = false
+                        return@setOnTouchListener true // 消费事件
+                    }
+                }
+            }
+            false
         }
         // 添加悬浮按钮到窗口
         windowManager.addView(floatingButton, params)
@@ -363,7 +405,8 @@ class FloatingButtonService : Service() {
 
 
             private fun translateCroppedBitmap(bitmap: Bitmap) {
-                val outputBitmap = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+                val outputBitmap =
+                    Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
                 val canvas = Canvas(outputBitmap)
                 canvas.drawBitmap(bitmap, 0f, 0f, null)
 
@@ -376,7 +419,16 @@ class FloatingButtonService : Service() {
 //                )
 //                val screenshotFile = File(imagesDir, "screenshot.png")
                 // 创建文本识别器
-                val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                var recognizer: com.google.mlkit.vision.text.TextRecognizer
+                if (sourceLanguage == "Chinese") {
+                    recognizer =
+                        TextRecognition.getClient(ChineseTextRecognizerOptions.Builder().build())
+                } else if (sourceLanguage == "English") {
+                    recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                } else {
+                    recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+                }
+//                val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
 
 //                val inputImage1 = InputImage.fromFilePath(
@@ -490,6 +542,8 @@ class FloatingButtonService : Service() {
                 var conditions = DownloadConditions.Builder()
                     .requireWifi()
                     .build()
+//                val remoteModel = TranslateRemoteModel.Builder(languageSelected(targetLanguage)).build()
+//                remoteModelManager.download(remoteModel, conditions)
                 translator.downloadModelIfNeeded(conditions)
                     .addOnSuccessListener {
                         println("Download success")
@@ -545,8 +599,14 @@ class FloatingButtonService : Service() {
 //                val screenHeight = 2400
 //                Toast.makeText(this@FloatingButtonService, screenWidth.toString(), Toast.LENGTH_SHORT).show()
 //                Toast.makeText(this@FloatingButtonService, screenHeight.toString(), Toast.LENGTH_SHORT).show()
-                imageReader = ImageReader.newInstance(screenWidth, screenHeight, PixelFormat.RGBA_8888, 1)
+                imageReader =
+                    ImageReader.newInstance(screenWidth, screenHeight, PixelFormat.RGBA_8888, 1)
                 println("imageReader created")
+
+                mediaProjection = mediaProjectionManager!!.getMediaProjection(
+                    Activity.RESULT_OK,
+                    resultData!!
+                )
                 virtualDisplay = mediaProjection.createVirtualDisplay(
                     "Screenshot",
                     screenWidth, screenHeight, resources.displayMetrics.densityDpi,

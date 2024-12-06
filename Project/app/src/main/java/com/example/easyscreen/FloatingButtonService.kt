@@ -1,6 +1,5 @@
 package com.example.easyscreen
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -10,26 +9,18 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.PixelFormat
-import android.graphics.Rect
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
-import android.media.Image
 import android.media.ImageReader
-import android.media.MediaScannerConnection
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
-import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.os.IBinder
 import android.text.method.ScrollingMovementMethod
 import android.util.DisplayMetrics
-import android.util.Log
-import android.view.Display
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -37,31 +28,22 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.WindowManager
-import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.common.model.RemoteModelManager
-
 import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
-import com.google.mlkit.nl.translate.TranslateRemoteModel
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
-//import com.google.android.material.floatingactionbutton.FloatingActionButton
-import java.io.File
-import java.io.FileOutputStream
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.lang.Thread.sleep
-import java.util.Properties
 
 
 class FloatingButtonService : Service() {
@@ -81,7 +63,7 @@ class FloatingButtonService : Service() {
 
     private lateinit var remoteModelManager: RemoteModelManager
 
-    private var mediaProjectionManager: MediaProjectionManager ?= null
+    private var mediaProjectionManager: MediaProjectionManager? = null
     private var cnt = 0
 
     private var xDelta = 0f
@@ -145,12 +127,10 @@ class FloatingButtonService : Service() {
                 else -> false
             }
         }
-
-
-
+        
 
         translateButton.setOnClickListener {
-//            takeScreenshot()
+            Toast.makeText(this, "Tap and drag to select text", Toast.LENGTH_SHORT).show()
             cnt = 0
             Clip()
         }
@@ -172,7 +152,7 @@ class FloatingButtonService : Service() {
         }
 
 
-        //        // 设置悬浮按钮的参数
+        // 设置悬浮按钮的参数
         val params = WindowManager.LayoutParams(
             widthInPx,
             heightInPx,
@@ -559,6 +539,11 @@ class FloatingButtonService : Service() {
                                 params.width = WindowManager.LayoutParams.WRAP_CONTENT
                                 params.height = WindowManager.LayoutParams.WRAP_CONTENT
                                 windowManager.updateViewLayout(floatingButton, params)
+                                Toast.makeText(
+                                    this@FloatingButtonService,
+                                    "One finger to scroll\nTwo fingers to move",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                             .addOnFailureListener { e ->
                                 e.printStackTrace()
@@ -568,7 +553,7 @@ class FloatingButtonService : Service() {
                     }
                     .addOnFailureListener { exception ->
                         println("Download failed")
-//                        Toast.makeText(this@FloatingButtonService, "Download failed", Toast.LENGTH_LONG).show()
+//                        Toast.makeText(this@FloatingButtonService, "Download failed", Toast.LENGTH_SHORT).show()
                     }
 
 
@@ -618,7 +603,7 @@ class FloatingButtonService : Service() {
                 imageReader.setOnImageAvailableListener({ reader ->
                     if (cnt == 0) {
                         println("enter setOnImageAvailableListener")
-                        sleep(1000)
+                        sleep(600)
                         val image = reader.acquireNextImage()
                         if (image != null) {
                             val width = image.width

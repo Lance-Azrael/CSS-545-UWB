@@ -1,106 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.widget.ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="top|center_horizontal"
-    android:padding="0dp"
-    android:background="@android:color/white">
+    android:layout_height="match_parent">
 
-
-    <!-- App Title -->
-    <TextView
-        android:id="@+id/app_title"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="EasyScreen Translator"
-        android:textSize="35sp"
-        android:fontFamily="@font/freckle_face"
-        android:textColor="@android:color/white"
-        android:gravity="center"
-        android:paddingLeft="20dp"
-        android:paddingRight="20dp"
-        android:paddingTop="40dp"
-        android:paddingBottom="40dp"
-        android:background="@drawable/title_background"/>
+        android:layout_height="match_parent"
+        android:background="@android:color/white"
+        android:gravity="top|center_horizontal"
+        android:orientation="vertical"
+        android:padding="0dp">
+
+
+        <!-- App Title -->
+        <TextView
+            android:id="@+id/app_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/title_background"
+            android:fontFamily="@font/freckle_face"
+            android:gravity="center"
+            android:paddingLeft="20dp"
+            android:paddingTop="40dp"
+            android:paddingRight="20dp"
+            android:paddingBottom="40dp"
+            android:text="EasyScreen Translator"
+            android:textColor="@android:color/white"
+            android:textSize="35sp" />
         />
 
 
-    <!-- Language Spinner -->
-    <Spinner
-        android:id="@+id/source_language_spinner"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:background="@drawable/spinner_background"
-        android:layout_marginLeft="135dp"
-        android:layout_marginRight="135dp"
-        android:textSize="16sp"
-        android:fontFamily="@font/sour_gummy"
-        android:layout_marginTop="80dp"
-        android:gravity="center_vertical"/>
+        <!-- Language Spinner -->
+        <Spinner
+            android:id="@+id/source_language_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginLeft="135dp"
+            android:layout_marginTop="80dp"
+            android:layout_marginRight="135dp"
+            android:background="@drawable/spinner_background"
+            android:fontFamily="@font/sour_gummy"
+            android:gravity="center_vertical"
+            android:textSize="16sp" />
 
-    <!-- Translate to -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Translate to"
-        android:textSize="25sp"
-        android:fontFamily="@font/sour_gummy"
-        android:textColor="#4E2A82"
-        android:gravity="center"
-        android:layout_marginTop="5dp"
-        android:layout_marginBottom="5dp"/>
-
-
-    <!-- Language Spinner -->
-    <Spinner
-        android:id="@+id/target_language_spinner"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:background="@drawable/spinner_background"
-        android:layout_marginLeft="135dp"
-        android:layout_marginRight="135dp"
-        android:textSize="16sp"
-        android:fontFamily="@font/sour_gummy"
-        android:gravity="center_vertical"/>
+        <!-- Translate to -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:fontFamily="@font/sour_gummy"
+            android:gravity="center"
+            android:text="Translate to"
+            android:textColor="#4E2A82"
+            android:textSize="25sp" />
 
 
-    <!-- Start Button -->
-    <Button
-        android:id="@+id/startButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Start"
-        android:textSize="25sp"
-        android:fontFamily="@font/sour_gummy"
-        android:drawableLeft="@drawable/ic_start"
-        android:paddingLeft="15dp"
-        android:paddingRight="15dp"
-        android:paddingBottom="10dp"
-        android:paddingTop="10dp"
-        android:gravity="center"
-        android:textColor="@android:color/white"
-        android:background="@drawable/button_background"
-        android:layout_marginTop="50dp"/>
+        <!-- Language Spinner -->
+        <Spinner
+            android:id="@+id/target_language_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginLeft="135dp"
+            android:layout_marginRight="135dp"
+            android:background="@drawable/spinner_background"
+            android:fontFamily="@font/sour_gummy"
+            android:gravity="center_vertical"
+            android:textSize="16sp" />
 
 
-    <!-- 用户按钮 -->
-    <Button
-        android:id="@+id/user_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"
-        android:background="@drawable/button_background"
-        android:drawableLeft="@drawable/ic_user"
-        android:fontFamily="@font/sour_gummy"
-        android:gravity="center"
-        android:paddingLeft="15dp"
-        android:paddingTop="10dp"
-        android:paddingRight="15dp"
-        android:paddingBottom="10dp"
-        android:text=" User"
-        android:textColor="@android:color/white"
-        android:textSize="25sp" />
+        <!-- Start Button -->
+        <Button
+            android:id="@+id/startButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="50dp"
+            android:background="@drawable/button_background"
+            android:drawableLeft="@drawable/ic_start"
+            android:fontFamily="@font/sour_gummy"
+            android:gravity="center"
+            android:paddingLeft="15dp"
+            android:paddingTop="10dp"
+            android:paddingRight="15dp"
+            android:paddingBottom="10dp"
+            android:text="Start"
+            android:textColor="@android:color/white"
+            android:textSize="25sp" />
 
-</LinearLayout>
+
+        <!-- 用户按钮 -->
+        <Button
+            android:id="@+id/user_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="80dp"
+            android:background="@drawable/button_background"
+            android:drawableLeft="@drawable/ic_user"
+            android:fontFamily="@font/sour_gummy"
+            android:gravity="center"
+            android:paddingLeft="15dp"
+            android:paddingTop="10dp"
+            android:paddingRight="15dp"
+            android:paddingBottom="10dp"
+            android:text=" User"
+            android:textColor="@android:color/white"
+            android:textSize="25sp" />
+
+    </LinearLayout>
+</android.widget.ScrollView>

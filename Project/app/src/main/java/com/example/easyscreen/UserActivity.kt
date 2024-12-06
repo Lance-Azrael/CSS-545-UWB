@@ -33,9 +33,11 @@ class UserActivity : ComponentActivity() {
     private lateinit var sign_up_button: Button  // 退出登录按钮
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var firebaseAuth: FirebaseAuth
+    private lateinit var logoutButton: Button
 
     private var isInput = false
     private var isSignUp = false
+    private var isLogin = false
 
     companion object {
         private const val RC_SIGN_IN = 9001
@@ -53,6 +55,7 @@ class UserActivity : ComponentActivity() {
 //        editCompleteButton = findViewById(R.id.edit_complete_button)
 //        logoutButton = findViewById(R.id.logout_button)  // 初始化退出登录按钮
         sign_up_button = findViewById(R.id.sign_up_button)  // 初始化注册按钮
+        logoutButton = findViewById(R.id.logout_button)
 
         login_button = findViewById(R.id.login_button)  // 初始化登录按钮
 
@@ -104,6 +107,8 @@ class UserActivity : ComponentActivity() {
                     isInput = false
                     emailText.isEnabled = false
                     passwordText.isEnabled = false
+                    isLogin = true
+                    logoutButton.visibility = View.VISIBLE
                 } else {
                     Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show()
                 }
@@ -147,6 +152,12 @@ class UserActivity : ComponentActivity() {
 //                Toast.makeText(this, "Please enter both email and password", Toast.LENGTH_SHORT).show()
 //            }
         }
+
+        logoutButton.setOnClickListener {
+            logoutUser()
+            isLogin = false
+            logoutButton.visibility = View.INVISIBLE
+        }
     }
     private fun registerUser(email: String, password: String) {
         firebaseAuth.createUserWithEmailAndPassword(email, password)
@@ -162,6 +173,20 @@ class UserActivity : ComponentActivity() {
                     Toast.makeText(this, "Registration failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                 }
             }
+    }
+
+    private fun logoutUser() {
+        // 执行注销操作
+        firebaseAuth.signOut()
+        emailText.setText("email")
+        passwordText.setText("......")
+
+        // 显示注销成功的提示
+        Toast.makeText(this, "Successfully logged out", Toast.LENGTH_SHORT).show()
+
+        // 跳转到登录页面，或者其他适当的页面
+        // startActivity(Intent(this, LoginActivity::class.java))
+        // finish()  // 如果需要结束当前页面
     }
 
     private fun signInWithEmailPassword(email: String, password: String) {

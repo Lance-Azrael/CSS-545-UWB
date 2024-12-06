@@ -66,9 +66,6 @@ class FloatingButtonService : Service() {
     private var mediaProjectionManager: MediaProjectionManager? = null
     private var cnt = 0
 
-    private var xDelta = 0f
-    private var yDelta = 0f
-
     private var startX = 0
     private var startY = 0
 
@@ -88,6 +85,8 @@ class FloatingButtonService : Service() {
         println(sourceLanguage)
         println(targetLanguage)
 
+
+        // Media Projection
         if (resultData != null) {
             createNotification()
             mediaProjectionManager =
@@ -112,6 +111,8 @@ class FloatingButtonService : Service() {
         windowX = getScreenSizeInService(this).first
         windowY = getScreenSizeInService(this).second
 
+
+        // floating button click event
         var move = false
         translateButton.setOnTouchListener { v, event ->
             when (event.action) {
@@ -138,9 +139,11 @@ class FloatingButtonService : Service() {
         val displayMetrics = resources.displayMetrics
         val density = displayMetrics.density
 
-        val widthInPx = (60 * density).toInt()  // 100dp 转换为像素
-        val heightInPx = (60 * density).toInt()  // 100dp 转换为像素
+        val widthInPx = (60 * density).toInt()  // 100dp convert to pixels
+        val heightInPx = (60 * density).toInt()  // 100dp convert to pixels
 
+
+        // back button click event
         back_button.setOnClickListener {
             translatedTextView.visibility = View.INVISIBLE
             back_button.visibility = View.INVISIBLE
@@ -152,7 +155,7 @@ class FloatingButtonService : Service() {
         }
 
 
-        // 设置悬浮按钮的参数
+        // floating button position
         val params = WindowManager.LayoutParams(
             widthInPx,
             heightInPx,
@@ -164,7 +167,6 @@ class FloatingButtonService : Service() {
             PixelFormat.TRANSLUCENT
         )
 
-        // 设置悬浮按钮的位置
         params.gravity = Gravity.TOP or Gravity.START
         params.x = 0
         params.y = 0
@@ -173,13 +175,13 @@ class FloatingButtonService : Service() {
             val params = v.layoutParams as WindowManager.LayoutParams
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    // 记录触摸的起始位置
+                    // start position
                     startX = event.rawX.toInt()
                     startY = event.rawY.toInt()
                 }
 
                 MotionEvent.ACTION_MOVE -> {
-                    // 计算悬浮窗的新位置
+                    // new position
                     val dx = event.rawX.toInt() - startX
                     val dy = event.rawY.toInt() - startY
                     params.x += dx
@@ -192,10 +194,11 @@ class FloatingButtonService : Service() {
             true
         }
 
+        // text box position
         translatedTextView.setOnTouchListener { v, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
-                    // 记录初始位置
+                    // start position
                     lastX = event.rawX
                     lastY = event.rawY
                     isDragging = false
@@ -203,10 +206,10 @@ class FloatingButtonService : Service() {
 
                 MotionEvent.ACTION_MOVE -> {
                     if (event.pointerCount == 1) {
-                        // 单指操作（TextView 滑动）
-                        false // 交由 TextView 自身处理
+                        // single finger operation (scroll text)
+                        false
                     } else if (event.pointerCount == 2) {
-                        // 双指操作（拖动父视图）
+                        // two finger operation (move text box)
                         val deltaX = event.rawX - lastX
                         val deltaY = event.rawY - lastY
                         params.x += deltaX.toInt()
@@ -214,7 +217,7 @@ class FloatingButtonService : Service() {
                         windowManager.updateViewLayout(floatingButton, params)
                         lastX = event.rawX
                         lastY = event.rawY
-                        true // 事件已处理
+                        true
                     } else {
                         false
                     }
@@ -223,27 +226,25 @@ class FloatingButtonService : Service() {
                 MotionEvent.ACTION_UP -> {
                     if (isDragging) {
                         isDragging = false
-                        return@setOnTouchListener true // 消费事件
+                        return@setOnTouchListener true
                     }
                 }
             }
             false
         }
-        // 添加悬浮按钮到窗口
+
         windowManager.addView(floatingButton, params)
 
-//        if (intent?.action == "screenshot_action") {
-//            takeScreenshot()
-//        }
         return START_STICKY
     }
 
 
+    // get screen size
     fun getScreenSizeInService(service: Service): Pair<Int, Int> {
         val windowManager = service.getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // 使用 WindowMetrics API (API Level 30 及以上)
+            // WindowMetrics API (API Level 30 or higher)
             val windowMetrics = windowManager.currentWindowMetrics
             val insets = windowMetrics.windowInsets.getInsetsIgnoringVisibility(
                 WindowInsets.Type.systemBars()
@@ -252,7 +253,7 @@ class FloatingButtonService : Service() {
             val height = windowMetrics.bounds.height() - insets.top - insets.bottom
             width to height
         } else {
-            // 使用 DisplayMetrics (API Level 29 及以下)
+            // DisplayMetrics (API Level 29 or lower)
             val displayMetrics = DisplayMetrics()
             @Suppress("DEPRECATION")
             windowManager.defaultDisplay.getMetrics(displayMetrics)
@@ -263,6 +264,7 @@ class FloatingButtonService : Service() {
     }
 
 
+    // create notification
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun createNotification() {
         val channelId = "screenshot_channel"
@@ -286,41 +288,19 @@ class FloatingButtonService : Service() {
         val notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle("Screenshot Service")
             .setContentText("Tap to take a screenshot")
-            .setSmallIcon(R.drawable.ic_screenshot) // 使用适当的图标
+            .setSmallIcon(R.drawable.ic_screenshot)
             .addAction(R.drawable.ic_screenshot, "Screenshot", pendingIntent)
             .build()
 
         startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
     }
 
-//    private fun takeScreenshot() {
-//        // 设置图像读取器
-//        imageReader = ImageReader.newInstance(1080, 1920, PixelFormat.RGBA_8888, 1)
-//
-//        virtualDisplay = mediaProjection.createVirtualDisplay(
-//            "Screenshot",
-//            1080, 1920, resources.displayMetrics.densityDpi,
-//            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-//            imageReader.surface, null, null
-//        )
-//
-//        imageReader.setOnImageAvailableListener({ reader ->
-//            val image = reader.acquireLatestImage()
-//            // 处理图像保存或其他操作
-////            saveImage(image)
-//            image.close()
-//        }, null)
-//
-//        // 提示：在适当的时候释放资源
-////        imageReader.close()
-////        virtualDisplay.release()
-////        mediaProjection.stop()
-//
-//    }
+
 
     private fun Clip() {
-        // 创建截图覆盖层
         println("takeScreenshot")
+
+        // overlay
         val overlay = LayoutInflater.from(this).inflate(R.layout.screenshot_overlay, null)
         val selectionView = overlay.findViewById<View>(R.id.selection_view)
 
@@ -333,10 +313,9 @@ class FloatingButtonService : Service() {
             PixelFormat.TRANSLUCENT
         )
 
-        // 显示覆盖层
         windowManager.addView(overlay, params)
 
-        // 处理用户选择区域
+        // selection view
         selectionView.setOnTouchListener(object : View.OnTouchListener {
             private var startX = 0f
             private var startY = 0f
@@ -349,7 +328,7 @@ class FloatingButtonService : Service() {
                     MotionEvent.ACTION_DOWN -> {
                         startX = event.x
                         startY = event.y
-                        // 创建选择矩形视图
+                        // create selection rectangle
                         selectionRect = View(this@FloatingButtonService).apply {
                             layoutParams = ViewGroup.LayoutParams(0, 0)
                             setBackgroundColor(Color.TRANSPARENT)
@@ -365,18 +344,12 @@ class FloatingButtonService : Service() {
                         return true
                     }
 
+                    // after selection
                     MotionEvent.ACTION_UP -> {
-                        // 在这里处理截图逻辑
-//                        captureScreenshot(startX, startY, endX, endY)
                         cnt = 0
-                        windowManager.removeView(selectionRect) // 移除选择矩形
-                        windowManager.removeView(overlay) // 移除覆盖层
+                        windowManager.removeView(selectionRect)
+                        windowManager.removeView(overlay)
                         captureScreenshot(startX, startY, endX, endY)
-//                        translateButton.visibility = View.INVISIBLE
-//                        overlay.visibility = View.INVISIBLE
-
-
-//                        stopSelf()
                         return true
                     }
                 }
@@ -393,12 +366,10 @@ class FloatingButtonService : Service() {
                 cnt++
 //                val imagesDir =
 //                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-//                println("enter translateCroppedBitmap")
-//                val file = File(
-//                    imagesDir, "screenshot.png"
-//                )
+//                val file = File(imagesDir, "screenshot.png")
 //                val screenshotFile = File(imagesDir, "screenshot.png")
-                // 创建文本识别器
+
+                // recognizer
                 var recognizer: com.google.mlkit.vision.text.TextRecognizer
                 if (sourceLanguage == "Chinese") {
                     recognizer =
@@ -408,43 +379,30 @@ class FloatingButtonService : Service() {
                 } else {
                     recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
                 }
-//                val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
 
-//                val inputImage1 = InputImage.fromFilePath(
-//                    this@FloatingButtonService,
-//                    Uri.fromFile(screenshotFile)
-//                )
-
-
+//                val inputImage1 = InputImage.fromFilePath(this@FloatingButtonService, Uri.fromFile(screenshotFile))
                 val inputImage = InputImage.fromBitmap(outputBitmap, 0)
 
-
-                // 进行文本识别
+                // recognize process
                 recognizer.process(inputImage)
                     .addOnSuccessListener { visionText ->
-                        // 提取识别的文本
                         val recognizedText = visionText.text
                         if (recognizedText.isNotEmpty()) {
-                            // 调用翻译函数
-//                            val cleanedText = recognizedText.replace(Regex("[\\n\\t]+"), ".")
                             val sentences = splitSentencesWithNewlineAndCase(recognizedText)
                             val cleanedText = sentences.joinToString("\n")
                             translateText(cleanedText)
-//                            Log.d("recognizedText", recognizedText)
                         } else {
                             translateText("Text not recognized")
-                            println("未识别到任何文本")
-//                            Toast.makeText(this@FloatingButtonService, "未识别到任何文本", Toast.LENGTH_SHORT).show()
-                        }
+                            println("no text recognized")}
                     }
                     .addOnFailureListener { e ->
                         e.printStackTrace()
-                        println("文本识别失败")
-//                        Toast.makeText(this@FloatingButtonService, "文本识别失败", Toast.LENGTH_SHORT).show()
+                        println("text recognition failed")
                     }
             }
 
+            // language to model
             private fun languageSelected(language: String): String {
                 return when (language) {
                     "Afrikaans" -> TranslateLanguage.AFRIKAANS
@@ -510,7 +468,7 @@ class FloatingButtonService : Service() {
                 }
             }
 
-
+            // translate text
             private fun translateText(text: String) {
                 println("enter translateText")
                 val options = TranslatorOptions.Builder()
@@ -529,7 +487,6 @@ class FloatingButtonService : Service() {
                         println("Download success")
                         translator.translate(text)
                             .addOnSuccessListener { translatedText ->
-                                // 显示翻译结果
                                 println("Translate result: $translatedText")
                                 translatedTextView.visibility = View.VISIBLE
                                 translatedTextView.text = "$translatedText"
@@ -547,7 +504,7 @@ class FloatingButtonService : Service() {
                             }
                             .addOnFailureListener { e ->
                                 e.printStackTrace()
-                                println("翻译失败")
+                                println("translate failed")
 //                        Toast.makeText(this@FloatingButtonService, "翻译失败", Toast.LENGTH_SHORT).show()
                             }
                     }
@@ -623,18 +580,17 @@ class FloatingButtonService : Service() {
 //                            val width = image.width
 //                            val height = image.height
 //                            val pixels = IntArray(width * height)
-//
-//                            // 读取图像数据到数组中
+
+//                            // read image into buffer
 //                            buffer.rewind()
 //                            buffer.asIntBuffer().get(pixels)
-//
-//                            // 计算选择区域的边界
+
+                            // culculate the clip area
                             val left = minOf(startX, endX).toInt()
                             val top = minOf(startY, endY).toInt()
                             val right = maxOf(startX, endX).toInt()
                             val bottom = maxOf(startY, endY).toInt()
-//
-//                            // 剪切图像
+
 //                            val croppedBitmap =
 //                                Bitmap.createBitmap(pixels, width, height, Bitmap.Config.ARGB_8888)
                             val finalBitmap = Bitmap.createBitmap(
@@ -645,7 +601,7 @@ class FloatingButtonService : Service() {
                                 bottom - top
                             )
 
-                            // 保存图像
+                            // save image
 //                        translateCroppedBitmap(finalBitmap)
 //                            saveImage(finalBitmap)
 
@@ -660,22 +616,12 @@ class FloatingButtonService : Service() {
                         virtualDisplay.release()
                     }
 
-
 //                    imageReader.close()
 //                    virtualDisplay.release()
 
-
                 }, null)
-
-                // 提示：在适当的时候释放资源
-//                println("release resource")
-
-//                mediaProjection.stop()
             }
-
-
         })
-//        stopSelf()
     }
 
 //    private fun saveImage(bitmap: Bitmap) {
@@ -697,8 +643,8 @@ class FloatingButtonService : Service() {
 ////        Toast.makeText(this, "Screenshot saved", Toast.LENGTH_SHORT).show()
 ////        stopSelf()
 //    }
-//
-//
+
+
 //    private fun saveImage(image: Image) {
 //        val bitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
 //        bitmap.copyPixelsFromBuffer(image.planes[0].buffer)
@@ -717,30 +663,28 @@ class FloatingButtonService : Service() {
 ////        stopSelf()
 //    }
 
+
+    // optimize english text
     fun splitSentencesWithNewlineAndCase(text: String): List<String> {
         val sentences = mutableListOf<String>()
-        val paragraphs = text.split("\n") // 先按换行符初步分段
+        val paragraphs = text.split("\n")
 
         var currentSentence = StringBuilder()
 
         paragraphs.forEach { paragraph ->
             if (paragraph.isNotBlank()) {
                 val trimmedParagraph = paragraph.trim()
-                // 如果是以大写字母开头，认为是新句子的开始
                 if (trimmedParagraph.first().isUpperCase() && currentSentence.isNotEmpty()) {
-                    // 检查当前句子结尾是否有标点符号
                     val sentenceToAdd = ensureSentenceEndsWithPeriod(currentSentence.toString())
                     sentences.add(sentenceToAdd)
                     currentSentence = StringBuilder(trimmedParagraph)
                 } else {
-                    // 否则认为是上一句的延续
                     if (currentSentence.isNotEmpty()) currentSentence.append(" ")
                     currentSentence.append(trimmedParagraph)
                 }
             }
         }
 
-        // 添加最后的句子并确保句号
         if (currentSentence.isNotEmpty()) {
             val sentenceToAdd = ensureSentenceEndsWithPeriod(currentSentence.toString())
             sentences.add(sentenceToAdd)
@@ -763,12 +707,9 @@ class FloatingButtonService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        // 清理资源
-
 //        windowManager.removeView(translateButton)
 //        windowManager.removeView(translatedTextView)
         windowManager.removeView(floatingButton)
         mediaProjection.stop()
-
     }
 }

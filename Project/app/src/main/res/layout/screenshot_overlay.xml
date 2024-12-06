@@ -7,6 +7,6 @@
         android:id="@+id/selection_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#80000000"/> <!-- 半透明背景 -->
+        android:background="#80000000" /> <!-- translucency background -->
 
 </FrameLayout>

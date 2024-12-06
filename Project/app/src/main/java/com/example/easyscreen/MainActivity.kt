@@ -1,17 +1,12 @@
 package com.example.easyscreen
 
 import android.app.Activity
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Rect
 import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
 import android.provider.Settings
 import android.view.View
 import android.widget.AdapterView
@@ -23,14 +18,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import com.google.firebase.FirebaseApp
-import com.google.mlkit.common.model.DownloadConditions
-import com.google.mlkit.nl.translate.TranslateLanguage
-import com.google.mlkit.nl.translate.Translation
-import com.google.mlkit.nl.translate.TranslatorOptions
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions
-import java.io.IOException
 
 
 class MainActivity : ComponentActivity() {
@@ -51,17 +38,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         FirebaseApp.initializeApp(this)
-
-        // language spinner
-//        sourceLanguageSpinner = findViewById(R.id.source_language_spinner)
-//        val sourceLanguages = arrayOf("English", "Chinese", "Spanish", "French")
-//        val sourceAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, sourceLanguages)
-//        sourceLanguageSpinner.adapter = sourceAdapter
-//
-//        targetLanguageSpinner = findViewById(R.id.target_language_spinner)
-//        val targetLanguages = arrayOf("English", "Chinese", "Spanish", "French")
-//        val targetAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, targetLanguages)
-//        targetLanguageSpinner.adapter = targetAdapter
 
         // language spinner
         sourceLanguageSpinner = findViewById(R.id.source_language_spinner)
@@ -156,7 +132,6 @@ class MainActivity : ComponentActivity() {
         targetLanguageSpinner.adapter = targetAdapter
 
 
-
         // language preference
         val sharedPrefs = getSharedPreferences("AppPrefs", MODE_PRIVATE)
         selectedSourceLanguage =
@@ -246,7 +221,6 @@ class MainActivity : ComponentActivity() {
                 resultData = result.data
             } else {
                 Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
-//                stopMyService()
             }
         }
 
@@ -257,6 +231,8 @@ class MainActivity : ComponentActivity() {
             startActivityForResult(intent, OVERLAY_PERMISSION_REQUEST_CODE)
         }
 
+
+        // start button listener
         startButton.setOnClickListener {
             if (!isServiceStarted) {
                 startMyService(resultData)
@@ -272,6 +248,7 @@ class MainActivity : ComponentActivity() {
         startScreenCapture()
 
     }
+
 
     fun extractLanguageName(language: String): String {
         return language.split(" (")[0]

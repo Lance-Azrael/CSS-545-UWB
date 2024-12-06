@@ -13,7 +13,8 @@ class ScreenCaptureActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        mediaProjectionManager =
+            getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         val intent = mediaProjectionManager.createScreenCaptureIntent()
         startActivityForResult(intent, REQUEST_CODE)
     }
@@ -23,7 +24,7 @@ class ScreenCaptureActivity : Activity() {
         if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             val mediaProjection =
                 data?.let { mediaProjectionManager.getMediaProjection(resultCode, it) }
-            // 通过 LocalBroadcastManager 发送结果
+            // use LocalBroadcastManager to send data
             val intent = Intent("com.example.easyscreen.ScreenCaptureActivity")
             intent.putExtra("resultCode", resultCode)
             intent.putExtra("data", data)

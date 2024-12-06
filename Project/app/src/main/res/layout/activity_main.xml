@@ -88,7 +88,7 @@
             android:textSize="25sp" />
 
 
-        <!-- 用户按钮 -->
+        <!-- User Button -->
         <Button
             android:id="@+id/user_button"
             android:layout_width="wrap_content"

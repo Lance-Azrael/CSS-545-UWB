@@ -3,3 +3,13 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
 }
+
+
+buildscript {
+    dependencies {
+        classpath (libs.google.services.v440) // 确保使用最新版本
+    }
+    repositories {
+        google()
+    }
+}

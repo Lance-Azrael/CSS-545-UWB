@@ -11,34 +11,54 @@
         android:layout_height="wrap_content"
         android:text="VIP status"
         android:textSize="18sp"
+        android:layout_marginTop="80dp"
+        android:visibility="invisible"
         android:layout_marginBottom="16dp"/>
 
     <EditText
         android:id="@+id/name_edit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="name"
         android:layout_marginBottom="16dp"
-        android:enabled="false"/>  <!-- 禁用编辑 -->
+        android:enabled="false"
+        android:hint="email" />  <!-- 禁用编辑 -->
 
     <EditText
         android:id="@+id/email_edit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="email"
         android:layout_marginBottom="16dp"
-        android:enabled="false"/>  <!-- 禁用编辑 -->
+        android:enabled="false"
+        android:inputType="textPassword"
+        android:hint="password" />  <!-- 禁用编辑 -->
+
+
 
     <Button
-        android:id="@+id/edit_complete_button"
-        android:layout_width="wrap_content"
+        android:id="@+id/login_button"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="edit"/> <!-- 初始文本为“编辑” -->
+        android:textColor="@android:color/white"
+        android:background="@drawable/button_background"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp"
+        android:gravity="center"
+        android:layout_marginTop="40dp"
+        android:text="Login" />
 
     <Button
-        android:id="@+id/logout_button"
-        android:layout_width="wrap_content"
+        android:id="@+id/sign_up_button"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="log out"
-        android:layout_marginTop="16dp"/> <!-- 退出登录按钮 -->
+        android:textColor="@android:color/white"
+        android:background="@drawable/button_background"
+        android:paddingLeft="15dp"
+        android:paddingRight="15dp"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp"
+        android:gravity="center"
+        android:layout_marginTop="40dp"
+        android:text="SignUp" /> <!-- 退出登录按钮 -->
 </LinearLayout>

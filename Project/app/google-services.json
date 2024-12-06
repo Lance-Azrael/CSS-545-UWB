@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "46199289620",
+    "project_id": "easyscreentranslator",
+    "storage_bucket": "easyscreentranslator.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:46199289620:android:cee3a8b16504bc6af23401",
+        "android_client_info": {
+          "package_name": "com.example.easyscreen"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "46199289620-ab0o5q1smbh8ni69q6kvmuubokjn294e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.easyscreen",
+            "certificate_hash": "1d3cf6cf56c87655b3715d4faf461b6d547d4b0d"
+          }
+        },
+        {
+          "client_id": "46199289620-3c5p9ka6lii8ghqe30o6aeggtjf15q4s.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfrcAGtnzcUcpLXGVUb1HvXnWcwctwnB4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "46199289620-3c5p9ka6lii8ghqe30o6aeggtjf15q4s.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">EasyScreen</string>
     <string name="translate">Translate</string>
+    <string name="default_web_client_id">46199289620-ab0o5q1smbh8ni69q6kvmuubokjn294e.apps.googleusercontent.com</string>
 </resources>
